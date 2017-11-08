@@ -16,4 +16,4 @@ For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running I
 
 ![alt text][logo]
 
-[logo]: https://github.com/clintmann/onbox_assistant/FlowChart-config_rollback.gif "Logic Flowchart"
+[logo]: https://github.com/clintmann/onbox_assistant/blob/master/FlowChart-config_rollback.gif "Logic Flowchart"
