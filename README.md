@@ -1,15 +1,15 @@
 # Onbox Assistant
 
-##Introduction
+## Introduction
 
-Have you ever found yourself configuring a device via TELNET or SSH, when you get distracted, lose focus and enter a command that causes you to lose connectivity? If so, you've probably wished there was some way to go back in time. A way to undo your mistake.  
+Have you ever found yourself configuring a device via TELNET or SSH, when you get distracted, lose focus and enter a command that causes you to lose connectivity? If so, you've probably wished there was some way to go back in time - a way to undo your mistake.  
 
 The following script leverages the capabilities of Cisco IOS XE and the Guest Shell container to run a Python script on the device to accomplish just that. Think of it as our very OnBox Assistant and virtual time traveler.
 
 For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01.
 
 
-##How does it work?
+## How does it work?
 
 We are going to check for network connectivity by pinging the default gateway of the switches management interface.
 
@@ -36,13 +36,13 @@ Here are the scenarios:
        - If a configuration change has occurred, it can be inferred that the configuration change cause the loss of connectivity. The device configuration will be rolled back to the startup-config. 
  
 
-##Logical Flowchart
+## Logical Flowchart
 ![alt text][logo]
 
 [logo]: https://github.com/clintmann/onbox_assistant/blob/master/FlowChart-config_rollback.gif "Logic Flowchart"
 
 
-##Where do I start?
+## Where do I start?
 
 **1) Configure your management interface**
 
