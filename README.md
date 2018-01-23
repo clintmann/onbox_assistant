@@ -54,9 +54,9 @@ Here are the scenarios:
  
 
 ## Logical Flowchart
-![LOGIC FLOWCHART][logo]
+![LOGIC FLOWCHART][logo2]
 
-[logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
+[logo2]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
 
 
 ## Where do I start?
