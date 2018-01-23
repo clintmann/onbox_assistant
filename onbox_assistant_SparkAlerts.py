@@ -18,7 +18,6 @@ __license__ = "MIT"
 
 
 import os
-#import time
 import re
 from cli import execute
 from ciscosparkapi import CiscoSparkAPI, SparkApiError
@@ -102,8 +101,7 @@ if __name__ == '__main__':
             if connected is True:  # PING SUCCESSFUL
                 if diff == run_start_syncd:  # there is no difference detected
                     # no config change - sleep and check again in 5 seconds
-                    print "NO CHANGE DETECTED - Waiting 5 Seconds"
-                    #time.sleep(5)
+                    print "NO CHANGE DETECTED"
 
                 else:  # there is a change to the config send it to SPARK
                     if diff != latest_diff:
@@ -122,8 +120,7 @@ if __name__ == '__main__':
                 # NO CONFIG CHANGE - DO NOT ROLLBACK
                 if diff == run_start_syncd:  # there is no difference detected
                     # no config change sleep and check again in 20 seconds
-                    print "NO CHANGE DETECTED - Waiting 5 Seconds"
-                    #time.sleep(5)
+                    print "NO CHANGE DETECTED"
 
                 # CONFIG CHANGE DETECTED - ROLLBACK
                 else:
