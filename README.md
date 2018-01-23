@@ -4,12 +4,29 @@
 
 Have you ever found yourself configuring a device via TELNET or SSH, when you get distracted, lose focus and enter a command that causes you to lose connectivity? If so, you've probably wished there was some way to go back in time - a way to undo your mistake.  
 
-The following script leverages the capabilities of Cisco IOS XE and the Guest Shell container to run a Python script on the device to accomplish just that. Think of it as our very OnBox Assistant and virtual time traveler.
+The following script leverages the capabilities of Cisco IOS XE and the Guest Shell container to run a Python script on the device to accomplish just that. Think of it as our very OnBox Assistant.
 
-For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01.
+For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01. This script will utilize Cisco Spark for alerting. 
+
+####But what if... 
+
+I do not have a physical switch to test with. No worries, I recommend utilizing the "IOS XE on Catalyst 9000" Sandbox Lab at 
+
+<https://developer.cisco.com/site/sandbox/>
+
+![alt text][logo]
+
+[logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/DEVNET_Sandbox.gif "DEVNET Sandbox"
+
+Where you will be able to reserve time and test there for FREE! How cool is that? 
+
+####But what if... 
+I have never worked with Cisco Spark  No problem, check out the Learning Labs over at the Cisco DEVENT site  <https://developer.cisco.com>  to learn more on how apps utilize Cisco Spark 
+
+You can also find a ton of great information on the Cisco Spark for Developers site at <https://developer.ciscospark.com/>
 
 
-## How does it work?
+## How does the script work?
 
 We are going to check for network connectivity by pinging the default gateway of the switches management interface.
 
@@ -20,26 +37,25 @@ Here are the scenarios:
  
       - Check if a configuration change has been made by comparing the running-config with the startup-config
            - If the network is **UP** and a configuration change was **NOT DETECTED**. 
-               - Sleep for 20 seconds and test for connectivity.
+               - No action taken.
            - If the network is **UP** and a configuration change was **DETECTED**. 
                - Send a notification of the configuration change to Cisco Spark.
-               - Sleep for 20 seconds and test for connectivity.
 
 * The default gateway **IS NOT** reachable. 
  - **Actions:** 
  
      - Check if a configuration change has been made by comparing the running-config with the startup-config 
-
-       - If the network is **DOWN** and a configuration change was **NOT DETECTED** no action is taken. 
+          - If the network is **DOWN** and a configuration change was **NOT DETECTED** 
+              - No action is taken. 
         > _This prevents a configuration rollback from occurring if connectivity is lost due to a change or network event on an upstream device._
-
-       - If a configuration change has occurred, it can be inferred that the configuration change cause the loss of connectivity. The device configuration will be rolled back to the startup-config. 
+          - If the network is **DOWN** and a configuration change was **DETECTED** 
+              - The device configuration will be rolled back to the startup-config. It can be inferred that the configuration change cause the loss of connectivity. 
  
 
 ## Logical Flowchart
 ![alt text][logo]
 
-[logo]: https://github.com/clintmann/onbox_assistant/blob/master/OnBox_Flowchart.gif "Logic Flowchart"
+[logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
 
 
 ## Where do I start?
@@ -49,12 +65,12 @@ Here are the scenarios:
 This is the interface our script will use for network access - more on that a little later.
 
 ```
-CDM-Cat9300# config t
+Cat9300# config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 
-CDM-Cat9300(config)# interface GigabitEthernet0/0
+Cat9300(config)# interface GigabitEthernet0/0
 
-CDM-Cat9300(config)# ip address <your management ip> <subnet mask>
+Cat9300(config)# ip address <your management ip> <subnet mask>
 ```
 
 **2) Enable IOx Services**
@@ -63,14 +79,14 @@ In order to host our Python script in the Guest Shell container, we must first e
 
 
 ```
-CDM-Cat9300#config t
+Cat9300# config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 
-CDM-Cat9300(config)# iox
+Cat9300(config)# iox
 
-DM-Cat9300(config)# exit
+Cat9300(config)# exit
 
-CDM-Cat9300# show iox-service 
+Cat9300# show iox-service 
 
 IOx Infrastructure Summary:
 ---------------------------
@@ -86,7 +102,7 @@ IOx must be enabled and running before moving on to the next step.
 Guest Shell is a virtualized Linux-based container environment (LXC) where we will run our script. 
 
 ```
-CDM-Cat9300# guestshell enable
+Cat9300# guestshell enable
 Management Interface will be selected if configured
 Please wait for completion
 Guestshell enabled successfully
@@ -101,7 +117,7 @@ Front Panel networking - or access to the network via ports other than the manag
 Inside Guest Shell is were were going to set up everything needed for our script to run. 
 
 ```
-CDM-Cat9300#guestshell run bash
+Cat9300# guestshell run bash
 [guestshell@guestshell ~]$ 
 ```
 **5) Test for network connectivity**
@@ -167,20 +183,24 @@ After you paste the script into the file
 > * then wq 
 > * Press ENTER
 
-**11) Start the script**
+**11) Trigger the script**
 
 ```
-[guestshell@guestshell ~]$ python /bootflash/scripts/onbox_assistant_SparkAlerts.py
+event manager applet GUESTSHELL-RUN-ONBOX_ASSIST_APP
+ event cli pattern "^conf[a-z]*\st" sync no skip no
+ action 0.0 cli command "enable"
+ action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+ action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
 ```
-> Note: If you close the terminal window, the script will cease to run. 
-> 
-> If you would like the script to continue to run when you disconnect from your terminal session, you can use the 'nohup' command to disassociate the script from the terminal window. 
-> 
-> https://en.wikipedia.org/wiki/Nohup
-> 
+
+**12) Terminate the script**
 
 ```
-[guestshell@guestshell ~]$ nohup python /bootflash/scripts/onbox_assistant_SparkAlerts.py
+event manager applet GUESTSHELL-KILL-ONBOX_ASSIST_APP
+ event syslog pattern "%SYS-5-CONFIG_I: Configured from"
+ action 1.0 cli command "enable"
+ action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+ action 3.0 syslog msg "CONFIG TRIGGER : Killed OnBoxAssist_SparkAlert.py  in Guestshell"
 ```
 
 You can see if the process is running by using the following command 
