@@ -14,23 +14,23 @@ Illustrates the following concepts:
 
 __author__ = "Clint Mann"
 __author_email__ = "climann2@cisco.com"
-__copyright__ = "Copyright (c) 2018 Cisco Systems, Inc."
 __license__ = "MIT"
 
 
 import os
-import time
+#import time
 import re
 from cli import execute
 from ciscosparkapi import CiscoSparkAPI, SparkApiError
 
-gw_ip = "<ip-address-here>"
+gw_ip = "<GATEWAY_IP>"
+token = "<TOKEN>"
+email = "<EMAIL>"
 
 
 def pingTest(gw_ip):
     response = os.system("sudo ping -c 3 " + str(gw_ip))
-    #response = os.system("sudo ping -c 3 " + str(mgmt_ip) + str(" > /dev/null 2>&1"))
-    # and then check the response...
+    # Check the response
     if response == 0:
         # gw_ip_address is up
         connected = True
@@ -45,6 +45,7 @@ def getHostname():
     sh_run = execute("show run | include hostname")
     list1 = sh_run.split("hostname", 1)[1]
     hostname = list1.split("!", 1)[0]
+
 
     return hostname
 
@@ -82,40 +83,27 @@ def sparkAlert(token, email, message):
 
 
 if __name__ == '__main__':
-    # Use ArgParse to retrieve command line parameters.
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser("Spark Check In")
-    # Retrieve the Spark Token and Destination Email
-    parser.add_argument(
-        "-t", "--token", help="Spark Authentication Token", required=True
-    )
-    # Retrieve the Spark Token and Destination Email
-    parser.add_argument(
-        "-e", "--email", help="Email to Send to", required=True
-    )
-    args = parser.parse_args()
-    token = args.token
-    email = args.email
 
     hostname = getHostname()
 
     latest_diff = ""  # empty to start
-    run_start_syncd = "!Contextual Config Diffs:\n"
 
     try:
         while True:
             # check for diff between run and start cfg
             diff = configDiff()
+
             # if run and start are sync'd this will be the result of diff
+            run_start_syncd = "!Contextual Config Diffs:\n"
 
             connected = pingTest(gw_ip)
+            #ntp = checkNTP()
 
             if connected is True:  # PING SUCCESSFUL
                 if diff == run_start_syncd:  # there is no difference detected
-                    # no config change - sleep and check again in 20 seconds
-                    print "NO CHANGE DETECTED - Waiting 20 Seconds"
-                    time.sleep(20)
+                    # no config change - sleep and check again in 5 seconds
+                    print "NO CHANGE DETECTED - Waiting 5 Seconds"
+                    #time.sleep(5)
 
                 else:  # there is a change to the config send it to SPARK
                     if diff != latest_diff:
@@ -134,8 +122,8 @@ if __name__ == '__main__':
                 # NO CONFIG CHANGE - DO NOT ROLLBACK
                 if diff == run_start_syncd:  # there is no difference detected
                     # no config change sleep and check again in 20 seconds
-                    print "NO CHANGE DETECTED - Waiting 20 Seconds"
-                    time.sleep(20)
+                    print "NO CHANGE DETECTED - Waiting 5 Seconds"
+                    #time.sleep(5)
 
                 # CONFIG CHANGE DETECTED - ROLLBACK
                 else:
@@ -155,3 +143,4 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:  # allow user to break loop
         print "Manual break by user - CTRL-C"
+
