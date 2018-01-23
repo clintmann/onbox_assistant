@@ -39,7 +39,7 @@ Here are the scenarios:
 ## Logical Flowchart
 ![alt text][logo]
 
-[logo]: https://github.com/clintmann/onbox_assistant/blob/master/FlowChart-config_rollback.gif "Logic Flowchart"
+[logo]: https://github.com/clintmann/onbox_assistant/blob/master/OnBox_Flowchart.gif "Logic Flowchart"
 
 
 ## Where do I start?
