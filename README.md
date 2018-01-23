@@ -8,27 +8,28 @@ The following script leverages the capabilities of Cisco IOS XE and the Guest Sh
 
 For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01. This script will utilize Cisco Spark for alerting. 
 
-####But what if... 
+*What if...*  
+ - I do not have a physical switch to test with? I recommend utilizing the _"IOS XE on Catalyst 9000"_   Sandbox Lab at 
 
-I do not have a physical switch to test with. No worries, I recommend utilizing the "IOS XE on Catalyst 9000" Sandbox Lab at 
+    <https://developer.cisco.com/site/sandbox/>
+    
+    Where you will be able to reserve time and test there for FREE!
 
-<https://developer.cisco.com/site/sandbox/>
-
-![alt text][logo]
+![DEVNET Sandbox][logo]
 
 [logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/DEVNET_Sandbox.gif "DEVNET Sandbox"
 
-Where you will be able to reserve time and test there for FREE! How cool is that? 
 
-####But what if... 
-I have never worked with Cisco Spark  No problem, check out the Learning Labs over at the Cisco DEVENT site  <https://developer.cisco.com>  to learn more on how apps utilize Cisco Spark 
 
-You can also find a ton of great information on the Cisco Spark for Developers site at <https://developer.ciscospark.com/>
+*What if...* 
+ - I have never worked with Cisco Spark before?  No problem, check out the Learning Labs over at the Cisco DEVNET site  <https://developer.cisco.com>  to learn more on how apps utilize Cisco Spark.
+
+     You can also find a ton of great information on the Cisco Spark for Developers site at <https://developer.ciscospark.com/>
 
 
 ## How does the script work?
 
-We are going to check for network connectivity by pinging the default gateway of the switches management interface.
+We are going to check for network connectivity by pinging the default gateway of the switches management interface. You can add functions to test for other requirements if you would like. 
 
 Here are the scenarios:
  
@@ -53,7 +54,7 @@ Here are the scenarios:
  
 
 ## Logical Flowchart
-![alt text][logo]
+![LOGIC FLOWCHART][logo]
 
 [logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
 
@@ -61,6 +62,8 @@ Here are the scenarios:
 ## Where do I start?
 
 **1) Configure your management interface**
+
+###### _This step is not necessary if your using the Sandbox_
 
 This is the interface our script will use for network access - more on that a little later.
 
@@ -74,6 +77,8 @@ Cat9300(config)# ip address <your management ip> <subnet mask>
 ```
 
 **2) Enable IOx Services**
+
+###### _This step is not necessary if your using the Sandbox_
 
 In order to host our Python script in the Guest Shell container, we must first enable the IOx services. IOx is a framework developed by Cisco that provides the capability to host applications on the network device. 
 
@@ -98,6 +103,8 @@ Libvirtd             : Running
 IOx must be enabled and running before moving on to the next step. 
 
 **3) Start the Guest Shell container**
+
+###### _This step is not necessary if your using the Sandbox_
 
 Guest Shell is a virtualized Linux-based container environment (LXC) where we will run our script. 
 
@@ -186,25 +193,26 @@ After you paste the script into the file
 **11) Trigger the script**
 
 ```
-event manager applet GUESTSHELL-RUN-ONBOX_ASSIST_APP
- event cli pattern "^conf[a-z]*\st" sync no skip no
- action 0.0 cli command "enable"
- action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
- action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
+Cat9300# config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+
+Cat9300(config)# event manager applet GUESTSHELL-RUN-ONBOX_ASSIST_APP
+Cat9300(config-applet)#  event cli pattern "^conf[a-z]*\st" sync no skip no
+Cat9300(config-applet)#  action 0.0 cli command "enable"
+Cat9300(config-applet)#  action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+Cat9300(config-applet)#  action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
 ```
 
 **12) Terminate the script**
 
 ```
-event manager applet GUESTSHELL-KILL-ONBOX_ASSIST_APP
- event syslog pattern "%SYS-5-CONFIG_I: Configured from"
- action 1.0 cli command "enable"
- action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
- action 3.0 syslog msg "CONFIG TRIGGER : Killed OnBoxAssist_SparkAlert.py  in Guestshell"
+Cat9300# config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+
+Cat9300(config)# event manager applet GUESTSHELL-KILL-ONBOX_ASSIST_APP
+Cat9300(config-applet)#  event syslog pattern "%SYS-5-CONFIG_I: Configured from"
+Cat9300(config-applet)#  action 1.0 cli command "enable"
+Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Killed OnBoxAssist_SparkAlert.py  in Guestshell"
 ```
 
-You can see if the process is running by using the following command 
-
-```
-[guestshell@guestshell ~]$ ps -ef | grep onbox_assistant_SparkAlerts.py
-```
