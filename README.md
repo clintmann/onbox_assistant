@@ -144,7 +144,7 @@ If you are not able to ping successfully, you will not be able to install the py
 ```
 [guestshell@guestshell ~]$ sudo ping -c 3 <some public IP address>
 ```
-##Option 1 for configuring Guest Shell environment
+## Option 1 for configuring Guest Shell environment
 
 **6) Configure a DNS Server**
 
@@ -241,7 +241,7 @@ Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBo
 All the configuration is now complete. Have fun testing!
 
 
-##Option 2 for configuring Guest Shell environment
+## Option 2 for configuring Guest Shell environment
 
 If you do not want to manually configure Steps 6 - 10, try using the setup script. 
 
