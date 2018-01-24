@@ -235,7 +235,7 @@ Cat9300(config)# event manager applet TERMINATE-ONBOX_ASSIST_APP
 Cat9300(config-applet)#  event syslog pattern "%SYS-5-CONFIG_I: Configured from"
 Cat9300(config-applet)#  action 1.0 cli command "enable"
 Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
-Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBoxAssist_SparkAlert.py  in Guestshell"
+Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated onbox_assistant_SparkAlerts.py  in Guestshell"
 ```
 
 All the configuration is now complete. Have fun testing!
@@ -372,7 +372,7 @@ Cat9300(config)# event manager applet TERMINATE-ONBOX_ASSIST_APP
 Cat9300(config-applet)#  event syslog pattern "%SYS-5-CONFIG_I: Configured from"
 Cat9300(config-applet)#  action 1.0 cli command "enable"
 Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
-Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBoxAssist_SparkAlert.py  in Guestshell"
+Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated onbox_assistant_SparkAlerts.py  in Guestshell"
 ```
 
 All the configuration is now complete. Have fun testing!
