@@ -4,32 +4,18 @@
 
 Have you ever found yourself configuring a device via TELNET or SSH, when you get distracted, lose focus and enter a command that causes you to lose connectivity? If so, you've probably wished there was some way to go back in time - a way to undo your mistake.  
 
-The following script leverages the capabilities of Cisco IOS XE and the Guest Shell container to run a Python script on the device to accomplish just that. Think of it as our very OnBox Assistant.
-
-For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01. This script will utilize Cisco Spark for alerting. 
-
-*What if...*  
- - I do not have a physical switch to test with? I recommend utilizing the _"IOS XE on Catalyst 9000"_   Sandbox Lab at 
-
-    <https://developer.cisco.com/site/sandbox/>
-    
-    Where you will be able to reserve time and test there for FREE!
-
-![DEVNET Sandbox][logo]
-
-[logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/DEVNET_Sandbox.gif "DEVNET Sandbox"
-
-
-
-*What if...* 
- - I have never worked with Cisco Spark before?  No problem, check out the Learning Labs over at the Cisco DEVNET site  <https://developer.cisco.com>  to learn more on how apps utilize Cisco Spark.
-
-     You can also find a ton of great information on the Cisco Spark for Developers site at <https://developer.ciscospark.com/>
-
+The following demonstration leverages the capabilities of Cisco IOS XE and the Guest Shell container to run a Python script on the device to accomplish just that. Think of it as your very own OnBox Assistant.
 
 ## How does the script work?
 
-We are going to check for network connectivity by pinging the default gateway of the switches management interface. You can add functions to test for other requirements if you would like. 
+The python script is started when the user enters global configuration mode. We will use an Embedded Event Manager (EEM) applet as the trigger. When the user exists out of global configuration mode a separate EEM script is used to terminate the python script process.
+
+![LOGIC Workflow][logo]
+
+[logo]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Workflow.gif "Workflow"
+
+
+We are going to check for network connectivity by pinging the default gateway of the switch's management interface. Feel free to add functions to the existing code to test for more requirements if necessary.
 
 Here are the scenarios:
  
@@ -54,10 +40,31 @@ Here are the scenarios:
  
 
 ## Logical Flowchart
-![LOGIC FLOWCHART][logo2]
+![LOGIC FLOWCHART][logo1]
 
-[logo2]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
+[logo1]: https://github.com/clintmann/onbox_assistant/blob/master/images/OnBox_Flowchart.gif "Logic Flowchart"
 
+For this demonstration I am using the Catalyst 9300 switch (C9300-24U) running IOS-XE Software Version 16.06.01. I am also utilizing Cisco Spark to alert when on when a change has occured and when a rollback event has been initiated.
+
+*What if...*  
+ - I do not have a physical switch to test with? I recommend utilizing the _"IOS XE on Catalyst 9000"_   Sandbox Lab at 
+
+    <https://developer.cisco.com/site/sandbox/>
+    
+    Where you will be able to reserve time and test there for FREE!
+
+![DEVNET Sandbox][logo2]
+
+[logo2]: https://github.com/clintmann/onbox_assistant/blob/master/images/DEVNET_Sandbox.gif "DEVNET Sandbox"
+
+
+*What if...* 
+ - I have never worked with Cisco Spark before?  No problem, check out the Learning Labs over at the Cisco DEVNET site  <https://developer.cisco.com>  to learn more on how apps utilize Cisco Spark.
+
+     You can also find a ton of great information on the Cisco Spark for Developers site at <https://developer.ciscospark.com/>
+     
+     And check out Hank Preston's blog to learn more about Python and Guest Shell on IOS XE devices as well as how to create a SparkBot 
+     <https://communities.cisco.com/community/developer/blog/2017/04/17/introducing-python-and-guest-shell-on-ios-xe-165>
 
 ## Where do I start?
 
@@ -184,6 +191,14 @@ We will just use the default text editor vi .
 Copy and paste script
 
 
+Replace the following placeholders with the values for your environment - the gateway to ping, your Spark Token and your email address.
+
+```
+gw_ip = "<GATEWAY_IP>"
+token = "<TOKEN>"
+email = "<EMAIL>"
+```
+
 After you paste the script into the file
 > * Press ESC 
 > * then : 
@@ -192,11 +207,13 @@ After you paste the script into the file
 
 **11) Trigger the script**
 
+Copy the following EEM applet into your running config. Save the config.
+
 ```
 Cat9300# config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 
-Cat9300(config)# event manager applet GUESTSHELL-RUN-ONBOX_ASSIST_APP
+Cat9300(config)# event manager applet RUN-ONBOX_ASSIST_APP
 Cat9300(config-applet)#  event cli pattern "^conf[a-z]*\st" sync no skip no
 Cat9300(config-applet)#  action 0.0 cli command "enable"
 Cat9300(config-applet)#  action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
@@ -205,14 +222,16 @@ Cat9300(config-applet)#  action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_a
 
 **12) Terminate the script**
 
+Copy the following EEM applet into your running config. Save the config.
+
 ```
 Cat9300# config t
 Enter configuration commands, one per line.  End with CNTL/Z.
 
-Cat9300(config)# event manager applet GUESTSHELL-KILL-ONBOX_ASSIST_APP
+Cat9300(config)# event manager applet TERMINATE-ONBOX_ASSIST_APP
 Cat9300(config-applet)#  event syslog pattern "%SYS-5-CONFIG_I: Configured from"
 Cat9300(config-applet)#  action 1.0 cli command "enable"
 Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
-Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Killed OnBoxAssist_SparkAlert.py  in Guestshell"
+Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBoxAssist_SparkAlert.py  in Guestshell"
 ```
 
