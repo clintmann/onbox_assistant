@@ -1,0 +1,5 @@
+event manager applet TERMINATE-ONBOX_ASSIST_APP
+ event syslog pattern "%SYS-5-CONFIG_I: Configured from"
+ action 1.0 cli command "enable"
+ action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+ action 3.0 syslog msg "CONFIG TRIGGER : TERMINATED onbox_assistant_SparkAlerts.py  in Guestshell"

@@ -1,0 +1,6 @@
+event manager applet GUESTSHELL-RUN-ONBOX_ASSIST_APP
+ event cli pattern "^conf[a-z]*\st" sync no skip no
+ action 0.0 cli command "enable"
+ action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+ action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
+
