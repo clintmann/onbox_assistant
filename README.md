@@ -126,6 +126,8 @@ Guest Shell on the Catalyst 9300 at this time only permits network access via th
 
 Front Panel networking - or access to the network via ports other than the management interface is not currently supported in the Catalyst 9300 or Catalyst 9500 series switches at this time. 
 
+
+
 **4) Start Bash shell to access Guest Shell**
 
 Inside Guest Shell is were were going to set up everything needed for our script to run. 
@@ -140,8 +142,9 @@ First ping the default gateway of your management subnet. Next, I like to also p
 If you are not able to ping successfully, you will not be able to install the python helper libraries we import in our script.
 
 ```
-[guestshell@guestshell ~]$ sudo ping -c 3 <replace with your default-gateway IP>
+[guestshell@guestshell ~]$ sudo ping -c 3 <some public IP address>
 ```
+##Option 1 for configuring Guest Shell environment
 
 **6) Configure a DNS Server**
 
@@ -205,7 +208,7 @@ After you paste the script into the file
 > * then wq 
 > * Press ENTER
 
-**11) Trigger the script**
+**11) Configure EEM Trigger applet**
 
 Copy the following EEM applet into your running config. Save the config.
 
@@ -220,7 +223,7 @@ Cat9300(config-applet)#  action 1.0 cli command "guestshell run python /bootflas
 Cat9300(config-applet)#  action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
 ```
 
-**12) Terminate the script**
+**12) Configure EEM Terminate applet**
 
 Copy the following EEM applet into your running config. Save the config.
 
@@ -235,3 +238,141 @@ Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootf
 Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBoxAssist_SparkAlert.py  in Guestshell"
 ```
 
+All the configuration is now complete. Have fun testing!
+
+
+##Option 2 for configuring Guest Shell environment
+
+If you do not want to manually configure Steps 6 - 10, try using the setup script. 
+
+
+**1) Start Bash shell to access Guest Shell**
+
+Inside Guest Shell is were were going to set up everything needed for our script to run. 
+
+```
+Cat9300# guestshell run bash
+[guestshell@guestshell ~]$ 
+```
+
+**2) Test for network connectivity**
+
+First ping the default gateway of your management subnet. Next, I like to also ping something public on the internet. 
+If you are not able to ping successfully, you will not be able to install the python helper libraries we import in our script.
+
+```
+[guestshell@guestshell ~]$ sudo ping -c 3 <some public IP address>
+```
+
+**3) Create a directory on the switch to store scripts**
+
+
+```
+[guestshell@guestshell ~]$  mkdir /bootflash/scripts
+```
+
+**4) Create a file that will contain our setup.sh script**
+
+```
+[guestshell@guestshell ~]$  touch /bootflash/scripts/setup.sh
+```
+
+**5) Copy script from setup.sh into the file**
+
+We will just use the default text editor vi . 
+
+```
+[guestshell@guestshell ~]$ vi /bootflash/scripts/setup.sh
+```
+Copy and paste script
+
+This script will prompt setup the guest shell environment, prompt you for values and pull down the onbox_assistant_SparkAlerts.py script from Github
+
+```
+#!/usr/bin/env bash
+
+echo
+echo "###############################################"
+echo "Thank you for using the Onbox Assistant Demo App"
+echo "This script will set up the environment to run the app"
+echo "###############################################"
+echo
+
+echo "Press Enter to continue..."
+read confirm
+
+echo "Please enter the NAMESERVER : "
+read NAMESERVER
+
+# configure nameserver
+echo "nameserver " $NAMESERVER | sudo tee --append /etc/resolv.conf
+
+# pip install required python libraries
+sudo -E pip install --upgrade pip
+sudo -E pip install urllib3[secure]
+sudo -E pip install requests
+sudo -E pip install ciscosparkapi
+sudo -E pip install pyCli
+
+# create a folder to store scripts in
+#mkdir /bootflash/scripts
+
+wget "https://raw.githubusercontent.com/clintmann/onbox_assistant/master/onbox_assistant_SparkAlerts.py" "/bootflash/scripts/"
+
+echo "Please enter the IP ADDRESS used to test for connectivity : "
+read GATEWAY_IP
+
+echo "Please enter the SPARK AUTHENTICATION TOKEN : "
+read TOKEN
+
+echo "Please enter the EMAIL ADDRESS to Send to : "
+read EMAIL_ADDR
+
+sed -i "s/<GATEWAY_IP>/$GATEWAY_IP/"  /bootflash/scripts/onbox_assistant_SparkAlerts.py
+sed -i "s/<TOKEN>/$TOKEN/"  /bootflash/scripts/onbox_assistant_SparkAlerts.py
+sed -i "s/<EMAIL>/$EMAIL_ADDR/"  /bootflash/scripts/onbox_assistant_SparkAlerts.py
+```
+
+**6) Run setup.sh**
+
+```
+[guestshell@guestshell ~]$  cd /bootflash/scripts
+
+[guestshell@guestshell scripts]$  bash setup.sh
+
+[guestshell@guestshell scripts]$ ls
+
+[guestshell@guestshell scripts]$ exit
+```
+
+**7) Configure EEM Trigger applet**
+
+Copy the following EEM applet into your running config. Save the config.
+
+```
+Cat9300# config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+
+Cat9300(config)# event manager applet RUN-ONBOX_ASSIST_APP
+Cat9300(config-applet)#  event cli pattern "^conf[a-z]*\st" sync no skip no
+Cat9300(config-applet)#  action 0.0 cli command "enable"
+Cat9300(config-applet)#  action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+Cat9300(config-applet)#  action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
+```
+
+**8) Configure EEM Terminate applet**
+
+Copy the following EEM applet into your running config. Save the config.
+
+```
+Cat9300# config t
+Enter configuration commands, one per line.  End with CNTL/Z.
+
+Cat9300(config)# event manager applet TERMINATE-ONBOX_ASSIST_APP
+Cat9300(config-applet)#  event syslog pattern "%SYS-5-CONFIG_I: Configured from"
+Cat9300(config-applet)#  action 1.0 cli command "enable"
+Cat9300(config-applet)#  action 2.0 cli command "guestshell run pkill -f  /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+Cat9300(config-applet)#  action 3.0 syslog msg "CONFIG TRIGGER : Terminated OnBoxAssist_SparkAlert.py  in Guestshell"
+```
+
+All the configuration is now complete. Have fun testing!
