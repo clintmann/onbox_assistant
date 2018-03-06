@@ -356,8 +356,9 @@ Enter configuration commands, one per line.  End with CNTL/Z.
 Cat9300(config)# event manager applet RUN-ONBOX_ASSIST_APP
 Cat9300(config-applet)#  event cli pattern "^conf[a-z]*\st" sync no skip no
 Cat9300(config-applet)#  action 0.0 cli command "enable"
-Cat9300(config-applet)#  action 1.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
-Cat9300(config-applet)#  action 2.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
+Cat9300(config-applet)#  action 1.0 syslog msg "CONFIG TRIGGER : Started onbox_assistant_SparkAlerts.py  in Guestshell"
+Cat9300(config-applet)#  action 2.0 cli command "guestshell run python /bootflash/scripts/onbox_assistant_SparkAlerts.py"
+
 ```
 
 **8) Configure EEM Terminate applet**
