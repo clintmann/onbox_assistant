@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """
 OnBox Assistant
-Author: Clint Mann <climann2@cisco.com>
+Author: Clint Mann
 
 Illustrates the following concepts:
 - Leverage the capabilities of Cisco IOS XE and the Guest Shell
@@ -13,7 +13,6 @@ Illustrates the following concepts:
 """
 
 __author__ = "Clint Mann"
-__author_email__ = "climann2@cisco.com"
 __license__ = "MIT"
 
 
